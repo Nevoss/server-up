@@ -5,8 +5,8 @@ import program from 'commander'
 import linkSites from './commands/linkSites'
 
 program
-  .version('0.0.1')
-  .description('Running php and node server utilitie tool')
+  .version('0.1.0')
+  .description('Running php and node server utilities tool')
 
 program
   .command('link-sites')
