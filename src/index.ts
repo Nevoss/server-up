@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import os from 'os'
 import program from 'commander'
 
 import linkSites from './commands/linkSites'
@@ -14,7 +13,7 @@ program
   .option(
     '-c, --config <path>',
     'Config path, by default search in user dir the ".server-up.json" file.',
-    `/home/${os.userInfo().username}/.server-up.json`
+    `/etc/.server-up.json`
   )
   .option(
     '-h, --hosts',

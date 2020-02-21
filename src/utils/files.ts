@@ -10,7 +10,7 @@ export const readFile = (path: string): string => {
   try {
     return readFileSync(path).toString()
   } catch (e) {
-    error(e.error)
+    error(e.message)
 
     return ''
   }
@@ -25,7 +25,7 @@ export const readJsonFile = (path: string): Object => {
   try {
     return JSON.parse(readFile(path))
   } catch (e) {
-    error(e.error)
+    error(e.message)
 
     return {}
   }

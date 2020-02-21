@@ -2,6 +2,7 @@ import { Command } from 'commander'
 import config from '../config'
 import {appendFile, readFile, readJsonFile, removeFileIfExists, symlink, writeFile} from '../utils/files'
 import { Config, SiteConfig } from '../types/Config'
+import describe from "../utils/describe";
 
 /**
  * get the site Hosts file line
@@ -83,19 +84,25 @@ export default (command: Command) => {
 
   const nginxFilePaths = getNginxFilePaths(userConfig.nginxPath)
 
+  describe('Removing old Nginx config files.')
   removeFileIfExists(nginxFilePaths.sitesEnabled)
   removeFileIfExists(nginxFilePaths.sitesAvailable)
 
+  describe('Creating new Nginx site-available file.')
   writeFile(
       nginxFilePaths.sitesAvailable,
       generateNginxConfigContent(userConfig.sites, stubContent)
   )
 
+  describe('Symlink Nginx site-available to site-enabled.')
   symlink(nginxFilePaths.sitesAvailable, nginxFilePaths.sitesEnabled)
 
   if (!command.opts().hosts) {
     return
   }
 
+  describe('Update Hosts file.')
   updateHostsFile(userConfig.hostsPath, userConfig.sites)
+
+  describe('Dont forget to run \n sudo nginx -t \n sudo systemctl reload nginx')
 }
