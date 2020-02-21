@@ -1,0 +1,31 @@
+{
+  "name": "server-up",
+  "version": "0.0.1",
+  "description": "Running php and node server utilitie tool",
+  "main": "./lib/index.js",
+  "bin": {
+    "server-up": "./lib/index.js"
+  },
+  "scripts": {
+    "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
+    "create": "npm run build && npm run test",
+    "build": "tsc -p .",
+    "watch": "tsc -w",
+    "test": "sudo npm i -g && server-up",
+    "refresh": "rm -rf ./node_modules ./package-lock.json && npm install"
+  },
+  "author": "Nevo Golan <nevos12@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^3.0.0",
+    "commander": "^4.1.1",
+    "figlet": "^1.2.4",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "@types/node": "^13.7.4",
+    "nodemon": "^2.0.2",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.8.2"
+  }
+}

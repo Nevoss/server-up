@@ -1,0 +1,6 @@
+## Todo
+
+- Adding some bundler (move stub files to the lib)
+- write some tests to the "linkSites" method
+- refactor "linkSites" method to use all files utils
+- making the "--hosts" as option
