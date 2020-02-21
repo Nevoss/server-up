@@ -1,9 +1,31 @@
 import { Command } from 'commander'
-import { writeFileSync, appendFileSync, symlinkSync } from 'fs'
 import config from '../config'
-import { readFile, readJsonFile, removeFileIfExists } from '../utils/files'
+import {appendFile, readFile, readJsonFile, removeFileIfExists, symlink, writeFile} from '../utils/files'
 import { Config, SiteConfig } from '../types/Config'
 
+/**
+ * get the site Hosts file line
+ *
+ * @param domain
+ */
+const getSiteHostsLine = (domain: string) => `127.0.0.1  ${domain}`
+
+/**
+ * Paths of the nginx site config paths
+ *
+ * @param nginxGeneralPath
+ */
+const getNginxFilePaths = (nginxGeneralPath: string): {sitesEnabled: string, sitesAvailable: string} => ({
+  sitesEnabled: `${nginxGeneralPath}/sites-enabled/sites`,
+  sitesAvailable: `${nginxGeneralPath}/sites-available/sites`,
+})
+
+/**
+ * Generate nginx config content
+ *
+ * @param sitesConfig
+ * @param stubContent
+ */
 const generateNginxConfigContent = (
   sitesConfig: SiteConfig[],
   stubContent: string
@@ -24,35 +46,56 @@ const generateNginxConfigContent = (
   return nginxConfigContent
 }
 
-export default (command: Command) => {
-  //@ts-ignore
-  const userConfig: Config = readJsonFile(command.opts().config)
-  const stubContent: string = readFile(`${config.stubsDir}/nginx.stub`)
+/**
+ * Update the hosts file with the new sites
+ *
+ * @param hostsPath
+ * @param siteConfigs
+ */
+const updateHostsFile = (hostsPath: string, siteConfigs: SiteConfig[]) => {
+  const hostsFileContent = readFile(hostsPath)
 
-  const nginxFilePaths = {
-    sitesEnabled: `${userConfig.nginxPath}/sites-enabled/sites`,
-    sitesAvailable: `${userConfig.nginxPath}/sites-available/sites`,
-  }
-
-  removeFileIfExists(nginxFilePaths.sitesEnabled)
-  removeFileIfExists(nginxFilePaths.sitesAvailable)
-
-  writeFileSync(
-    nginxFilePaths.sitesAvailable,
-    generateNginxConfigContent(userConfig.sites, stubContent)
-  )
-
-  symlinkSync(nginxFilePaths.sitesAvailable, nginxFilePaths.sitesEnabled)
-
-  const hostsFileContent = readFile(userConfig.hostsPath)
-
-  userConfig.sites.forEach((siteConfig: SiteConfig) => {
-    const siteHostLine = `127.0.0.1  ${siteConfig.domain}`
+  siteConfigs.forEach((siteConfig: SiteConfig) => {
+    const siteHostLine = getSiteHostsLine(siteConfig.domain)
 
     if (hostsFileContent.indexOf(siteHostLine) > -1) {
       return
     }
 
-    appendFileSync(userConfig.hostsPath, `\n${siteHostLine}`)
+    appendFile(hostsPath, `\n${siteHostLine}`)
   })
+}
+
+/**
+ * Main LinkSite function
+ * - Read the user config file
+ * - Read the stub content of the Nginx
+ * - Remove old nginx sites config
+ * - Create nginx new sites config
+ * - Add a line to hosts file in linux if needed
+ *
+ * @param command
+ */
+export default (command: Command) => {
+  //@ts-ignore
+  const userConfig: Config = readJsonFile(command.opts().config)
+  const stubContent: string = readFile(`${config.stubsDir}/nginx.stub`)
+
+  const nginxFilePaths = getNginxFilePaths(userConfig.nginxPath)
+
+  removeFileIfExists(nginxFilePaths.sitesEnabled)
+  removeFileIfExists(nginxFilePaths.sitesAvailable)
+
+  writeFile(
+      nginxFilePaths.sitesAvailable,
+      generateNginxConfigContent(userConfig.sites, stubContent)
+  )
+
+  symlink(nginxFilePaths.sitesAvailable, nginxFilePaths.sitesEnabled)
+
+  if (!command.opts().hosts) {
+    return
+  }
+
+  updateHostsFile(userConfig.hostsPath, userConfig.sites)
 }
