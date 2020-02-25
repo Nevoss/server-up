@@ -1,8 +1,15 @@
 import { Command } from 'commander'
 import config from '../config'
-import {appendFile, readFile, readJsonFile, removeFileIfExists, symlink, writeFile} from '../utils/files'
+import {
+  appendFile,
+  readFile,
+  readJsonFile,
+  removeFileIfExists,
+  symlink,
+  writeFile,
+} from '../utils/files'
 import { Config, SiteConfig } from '../types/Config'
-import describe from "../utils/describe";
+import { success } from '../utils/log'
 
 /**
  * get the site Hosts file line
@@ -16,7 +23,9 @@ const getSiteHostsLine = (domain: string) => `127.0.0.1  ${domain}`
  *
  * @param nginxGeneralPath
  */
-const getNginxFilePaths = (nginxGeneralPath: string): {sitesEnabled: string, sitesAvailable: string} => ({
+const getNginxFilePaths = (
+  nginxGeneralPath: string
+): { sitesEnabled: string; sitesAvailable: string } => ({
   sitesEnabled: `${nginxGeneralPath}/sites-enabled/sites`,
   sitesAvailable: `${nginxGeneralPath}/sites-available/sites`,
 })
@@ -84,25 +93,25 @@ export default (command: Command) => {
 
   const nginxFilePaths = getNginxFilePaths(userConfig.nginxPath)
 
-  describe('Removing old Nginx config files.')
+  success('Removing old Nginx config files.')
   removeFileIfExists(nginxFilePaths.sitesEnabled)
   removeFileIfExists(nginxFilePaths.sitesAvailable)
 
-  describe('Creating new Nginx site-available file.')
+  success('Creating new Nginx site-available file.')
   writeFile(
-      nginxFilePaths.sitesAvailable,
-      generateNginxConfigContent(userConfig.sites, stubContent)
+    nginxFilePaths.sitesAvailable,
+    generateNginxConfigContent(userConfig.sites, stubContent)
   )
 
-  describe('Symlink Nginx site-available to site-enabled.')
+  success('Symlink Nginx site-available to site-enabled.')
   symlink(nginxFilePaths.sitesAvailable, nginxFilePaths.sitesEnabled)
 
   if (!command.opts().hosts) {
     return
   }
 
-  describe('Update Hosts file.')
+  success('Update Hosts file.')
   updateHostsFile(userConfig.hostsPath, userConfig.sites)
 
-  describe('Dont forget to run \n sudo nginx -t \n sudo systemctl reload nginx')
+  success('Dont forget to run \n sudo nginx -t \n sudo systemctl reload nginx')
 }

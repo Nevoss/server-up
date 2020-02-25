@@ -1,5 +1,12 @@
-import {appendFileSync, readFileSync, statSync, symlinkSync, unlinkSync, writeFileSync} from 'fs'
-import error from './error'
+import {
+  appendFileSync,
+  readFileSync,
+  statSync,
+  symlinkSync,
+  unlinkSync,
+  writeFileSync,
+} from 'fs'
+import { error } from './log'
 
 /**
  * reading a file and throw an error if there is a problem
@@ -56,10 +63,7 @@ export const removeFileIfExists = (path: string): void => {
  */
 export const writeFile = (path: string, data: string) => {
   try {
-    writeFileSync(
-        path,
-        data
-    )
+    writeFileSync(path, data)
   } catch (e) {
     error(e.message)
   }
