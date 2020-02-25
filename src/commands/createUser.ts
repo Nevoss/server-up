@@ -1,25 +1,39 @@
-import { error, success } from '../utils/log'
+import { success } from '../utils/log'
+import { errorIfFail } from '../utils/shelljsUtils'
+import { getUserConfig } from '../userConfig'
+import { exec } from 'shelljs'
+import config from '../config'
 
-const shell = require('shelljs')
+export interface CreateUserFunctionParams {
+  username: string | undefined
+  password: string | undefined
+  isConfigUser: boolean
+}
+
+const generatePassword = () =>
+  Math.random()
+    .toString(36)
+    .slice(-8)
 
 export default ({
   username,
   password,
-  defaultUser,
-}: {
-  username: string
-  password: string
-  defaultUser: boolean
-}) => {
-  success(`Create user with username: ${username} and password: ${password}.`)
+  isConfigUser,
+}: CreateUserFunctionParams) => {
+  username = username ?? config.defaultUsername
+  password = password ?? generatePassword()
 
-  const response = shell.exec(
-    `useradd ${username} --password=${password} --create-home`
-  )
+  errorIfFail(exec(`useradd ${username} --password=${password} --create-home`))
 
-  if (response.code !== 0) {
-    error(response.stderr)
+  success(`User created with username: ${username} and password: ${password}.`)
+
+  if (!isConfigUser) {
+    return
   }
 
-  success('User has been created.')
+  getUserConfig()
+    .set('user', username)
+    .write()
+
+  success(`User "${username}" has been set as config user.`)
 }

@@ -5,6 +5,7 @@ import linkSites from './commands/linkSites'
 import createUser from './commands/createUser'
 import init from './commands/init'
 import loadConfig from './commands/loadConfig'
+import start from './commands/start'
 
 const shellJs = require('shelljs')
 
@@ -15,10 +16,25 @@ program
   .description('Running php and node server utilities tool')
 
 program
-  .command('init')
-  .option('-p, --path <path>', 'Path to install the "server-up" config file')
-  .description('Create a config file.')
-  .action((command: Command) => init({ destPath: command.opts().path }))
+  .command('start')
+  .description(
+    'Run the whole process to create a php server with default values.'
+  )
+  .action(() => start())
+
+program
+  .command('create-user')
+  .option('-u, --username <username>', 'Username of the user')
+  .option('-p, --password <password>', 'Password of the user')
+  .option('-c, --config-user', 'Set the user as config user', false)
+  .description('Create a dev user in the operating system.')
+  .action((command: Command) =>
+    createUser({
+      username: command.opts().username,
+      password: command.opts().password,
+      isConfigUser: command.opts()['config-user'],
+    })
+  )
 
 program
   .command('load-config')
@@ -27,18 +43,16 @@ program
   .action((command: Command) => loadConfig({ destPath: command.opts().path }))
 
 program
-  .command('create-user')
-  .requiredOption('-u, --username <username>', 'Username of the user')
-  .requiredOption('-p, --password <password>', 'Password of the user')
-  .option(
-    '-d, --defaultUser',
-    'Set the user as default user (will change in the config file).',
-    true
+  .command('init')
+  .option('-p, --path <path>', 'Path to install the "server-up" config file')
+  .option('-u, --user <user>', 'Set specific user as a config user')
+  .description('Create a config file.')
+  .action((command: Command) =>
+    init({ destPath: command.opts().path, user: command.ops().user })
   )
-  .description('Create a dev user in the operating system.')
-  .action(createUser)
 
 program.command('install-nginx')
+program.command('install-php')
 program.command('install-posgres')
 program.command('install-redis')
 
