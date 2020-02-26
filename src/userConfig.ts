@@ -18,8 +18,7 @@ export const getUserConfig = () => {
     )
   }
 
-  const adapter = new FileSync()
-  const userConfigDB = low(adapter)
+  const userConfigDB = low(new FileSync(userConfigPath))
 
   userConfigDB.defaults(defaults).write()
 

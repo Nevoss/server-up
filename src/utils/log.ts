@@ -6,7 +6,7 @@ const chalk = require('chalk')
  * @param message
  */
 export const error = (message: string) => {
-  console.error(chalk.bold.red(message + '\n'))
+  console.error(chalk.bold.red(message))
 
   process.exit()
 }
@@ -17,5 +17,5 @@ export const error = (message: string) => {
  * @param message
  */
 export const success = (message: string) => {
-  console.log(chalk.bold.green(message + '\n'))
+  console.log(chalk.bold.green(message))
 }

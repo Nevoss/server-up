@@ -16,5 +16,5 @@ export default ({ destPath }: LoadConfigFunctionParams) => {
 
   db.set('configPath', destPath).write()
 
-  success('Config file is loaded.')
+  success('Config file has been loaded.')
 }

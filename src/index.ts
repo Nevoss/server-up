@@ -6,6 +6,7 @@ import createUser from './commands/createUser'
 import init from './commands/init'
 import loadConfig from './commands/loadConfig'
 import start from './commands/start'
+import installRepos from './commands/installRepos'
 
 const shellJs = require('shelljs')
 
@@ -51,9 +52,15 @@ program
     init({ destPath: command.opts().path, user: command.ops().user })
   )
 
+program
+  .command('install-repos')
+  .description('Install all the necessaries repos for the php server')
+  .action(() => installRepos())
+
+program.command('install-git')
 program.command('install-nginx')
 program.command('install-php')
-program.command('install-posgres')
+program.command('install-mysql')
 program.command('install-redis')
 
 program
