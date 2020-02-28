@@ -14,7 +14,6 @@
   "scripts": {
     "build": "rimraf dist/ && tsc -p . && npm run copy:stubs",
     "watch": "tsc -w",
-    "test": "sudo npm i -g && server-up",
     "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
     "copy:stubs": "mkdir dist/stubs && cp -r src/stubs/* dist/stubs/"
   },
