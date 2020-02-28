@@ -1,5 +1,5 @@
 {
-  "name": "server-up",
+  "name": "php-server-creator",
   "version": "0.1.0",
   "description": "Running php and node server utilities tool",
   "main": "dist/index.js",
@@ -9,7 +9,7 @@
   ],
   "types": "dist/index.d.ts",
   "bin": {
-    "server-up": "./dist/index.js"
+    "php-server": "./dist/index.js"
   },
   "scripts": {
     "build": "rimraf dist/ && tsc -p . && npm run copy:stubs",
