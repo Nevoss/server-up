@@ -37,10 +37,12 @@ const getNginxFilePaths = (
  * Generate nginx config content
  *
  * @param sitesConfig
+ * @param phpVersion
  * @param stubContent
  */
 const generateNginxConfigContent = (
   sitesConfig: SiteConfig[],
+  phpVersion: string | number,
   stubContent: string
 ) => {
   let nginxConfigContent: string = ''
@@ -52,6 +54,8 @@ const generateNginxConfigContent = (
       //@ts-ignore
       siteNginxConfig = siteNginxConfig.replace(`{{ ${key} }}`, siteConfig[key])
     })
+
+    siteNginxConfig.replace('{{ phpVersion }}', `${phpVersion}`)
 
     nginxConfigContent += '\n\n' + siteNginxConfig
   })
@@ -91,7 +95,7 @@ const updateHostsFile = (hostsPath: string, siteConfigs: SiteConfig[]) => {
  */
 export default ({ hosts }: { hosts: boolean }) => {
   const userConfig = getUserConfig()
-  const stubContent: string = readFile(`${config.stubsDir}/nginx.stub`)
+  const stubContent: string = readFile(`${config.stubsDir}/sites.stub`)
 
   const sites = userConfig.get('sites').value()
 
@@ -105,7 +109,11 @@ export default ({ hosts }: { hosts: boolean }) => {
 
   writeFile(
     nginxFilePaths.sitesAvailable,
-    generateNginxConfigContent(sites, stubContent)
+    generateNginxConfigContent(
+      sites,
+      userConfig.get('phpVersion').value(),
+      stubContent
+    )
   )
   success('New Nginx site-available file created.')
 
@@ -113,7 +121,7 @@ export default ({ hosts }: { hosts: boolean }) => {
   success('Symlink Nginx site-available to site-enabled.')
 
   errorIfFail(exec('nginx -t'))
-  errorIfFail(exec('systemctl reload nginx'))
+  errorIfFail(exec(`service nginx restart`))
 
   success('Nginx reloaded.')
 

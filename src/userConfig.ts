@@ -6,6 +6,7 @@ const FileSync = require('lowdb/adapters/FileSync')
 
 const defaults = {
   user: null,
+  phpVersion: 7.4,
   sites: [],
   paths: {
     nginx: null,
