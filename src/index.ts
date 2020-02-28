@@ -6,7 +6,7 @@ import createUser from './commands/createUser'
 import init from './commands/init'
 import loadConfig from './commands/loadConfig'
 import start from './commands/start'
-import installRepos from './commands/installRepos'
+import configureServer from './commands/configureServer'
 
 const shellJs = require('shelljs')
 
@@ -49,14 +49,10 @@ program
   .option('-u, --user <user>', 'Set specific user as a config user')
   .description('Create a config file.')
   .action((command: Command) =>
-    init({ destPath: command.opts().path, user: command.ops().user })
+    init({ destPath: command.opts().path, user: command.opts().user })
   )
 
-program
-  .command('install-repos')
-  .description('Install all the necessaries repos for the php server')
-  .action(() => installRepos())
-
+program.command('install-repos')
 program.command('install-git')
 program.command('install-nginx')
 program.command('install-php')
@@ -64,18 +60,18 @@ program.command('install-mysql')
 program.command('install-redis')
 
 program
+  .command('configure-server')
+  .description('Configure nginx and php-fpm to be started with config user')
+  .action(() => configureServer())
+
+program
   .command('link-sites')
   .description('create nginx config to the sites config')
-  .option(
-    '-c, --config <path>',
-    'Config path, by default search in user dir the ".server-up.json" file.',
-    `/etc/.server-up.json`
-  )
   .option(
     '-h, --hosts',
     'should the command edit the hosts file as well',
     false
   )
-  .action(linkSites)
+  .action((command: Command) => linkSites({ hosts: !!command.opts().hosts }))
 
 program.parse(process.argv)

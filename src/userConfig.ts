@@ -7,6 +7,10 @@ const FileSync = require('lowdb/adapters/FileSync')
 const defaults = {
   user: null,
   sites: [],
+  paths: {
+    nginx: null,
+    hosts: null,
+  },
 }
 
 export const getUserConfig = () => {

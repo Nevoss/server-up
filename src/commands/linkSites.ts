@@ -3,13 +3,16 @@ import config from '../config'
 import {
   appendFile,
   readFile,
-  readJsonFile,
   removeFileIfExists,
   symlink,
   writeFile,
 } from '../utils/files'
-import { Config, SiteConfig } from '../types/Config'
+import { SiteConfig } from '../types/Config'
 import { success } from '../utils/log'
+import { getUserConfig } from '../userConfig'
+import { errorIfFail } from '../utils/shelljsUtils'
+import { exec } from 'shelljs'
+import path from 'path'
 
 /**
  * get the site Hosts file line
@@ -26,8 +29,8 @@ const getSiteHostsLine = (domain: string) => `127.0.0.1  ${domain}`
 const getNginxFilePaths = (
   nginxGeneralPath: string
 ): { sitesEnabled: string; sitesAvailable: string } => ({
-  sitesEnabled: `${nginxGeneralPath}/sites-enabled/sites`,
-  sitesAvailable: `${nginxGeneralPath}/sites-available/sites`,
+  sitesEnabled: path.resolve(`${nginxGeneralPath}/sites-enabled/sites`),
+  sitesAvailable: path.resolve(`${nginxGeneralPath}/sites-available/sites`),
 })
 
 /**
@@ -86,32 +89,39 @@ const updateHostsFile = (hostsPath: string, siteConfigs: SiteConfig[]) => {
  *
  * @param command
  */
-export default (command: Command) => {
-  //@ts-ignore
-  const userConfig: Config = readJsonFile(command.opts().config)
+export default ({ hosts }: { hosts: boolean }) => {
+  const userConfig = getUserConfig()
   const stubContent: string = readFile(`${config.stubsDir}/nginx.stub`)
 
-  const nginxFilePaths = getNginxFilePaths(userConfig.nginxPath)
+  const sites = userConfig.get('sites').value()
 
-  success('Removing old Nginx config files.')
-  removeFileIfExists(nginxFilePaths.sitesEnabled)
-  removeFileIfExists(nginxFilePaths.sitesAvailable)
-
-  success('Creating new Nginx site-available file.')
-  writeFile(
-    nginxFilePaths.sitesAvailable,
-    generateNginxConfigContent(userConfig.sites, stubContent)
+  const nginxFilePaths = getNginxFilePaths(
+    userConfig.get('paths.nginx').value()
   )
 
-  success('Symlink Nginx site-available to site-enabled.')
-  symlink(nginxFilePaths.sitesAvailable, nginxFilePaths.sitesEnabled)
+  removeFileIfExists(nginxFilePaths.sitesEnabled)
+  removeFileIfExists(nginxFilePaths.sitesAvailable)
+  success('Removing old Nginx config files.')
 
-  if (!command.opts().hosts) {
+  writeFile(
+    nginxFilePaths.sitesAvailable,
+    generateNginxConfigContent(sites, stubContent)
+  )
+  success('New Nginx site-available file created.')
+
+  symlink(nginxFilePaths.sitesAvailable, nginxFilePaths.sitesEnabled)
+  success('Symlink Nginx site-available to site-enabled.')
+
+  errorIfFail(exec('nginx -t'))
+  errorIfFail(exec('systemctl reload nginx'))
+
+  success('Nginx reloaded.')
+
+  if (!hosts) {
     return
   }
 
-  success('Update Hosts file.')
-  updateHostsFile(userConfig.hostsPath, userConfig.sites)
+  updateHostsFile(userConfig.get('paths.hosts').value(), sites)
 
-  success('Dont forget to run \n sudo nginx -t \n sudo systemctl reload nginx')
+  success('Hosts file updated.')
 }
